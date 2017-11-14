@@ -1,9 +1,9 @@
 import React from 'react';
-import {Row,Col,Icon,Button} from 'antd'; 
+import { Row,Col,Icon,Button } from 'antd'; 
 import classnames from 'classnames'
 import { Link } from 'react-router';
 
-import { listData} from '../../mockdata'
+//import { listData} from '../../mockdata'
 
 export default class ArticleList extends React.Component{
 
@@ -11,81 +11,97 @@ export default class ArticleList extends React.Component{
     super();
     this.state={
       news:[],
-      deleteData:[],
-      deleteOri:'不感兴趣',
       modalVisible:false
     };
+    this.deleteReason = ['不感兴趣','看过了','太水'];
   }
 
   componentWillMount(){
-    //请求数据 如果成功的话
-    this.setState({
-      news:listData,
-    })
+    let myFetchOptions = {
+      method: 'GET'
+    };
+    fetch("http://newsapi.gugujiankong.com/Handler.ashx?action=getnews&type=" + this.props.type
+    + "&count=" + this.props.count, myFetchOptions)
+    .then(response => response.json())
+    .then(json => this.setState({news: json}));
   };
 
   selectReason(e){
-    e.target.style.Color = '#ed4040';
+    e.target.style.color = '#ed4040';
     e.target.style.borderColor = '#ed4040';
-    this.setState({
-      deleteOri:'确定'
-    })
   }
 
-  deleteItem(idx){
-    var {news,deleteData} = this.state;
-    // if(Object.prototype.toString.call(news) == '[object Array]'){
-    //   var itemLabels = news[idx].label;
-    // }
-    if(news.length>0)
-    {
-      var itemLabels = news[idx].label,
-      itemAuthor = news[idx].source;
-      deleteData.concat(itemLabels,itemAuthor);
-    }   
+  deleteItem(idx,e){
     this.setState({
-      deleteData:deleteData,
       modalVisible:true
     })
     this.props.deleteItem(true);
-    
+    this.evt = e.target;    
   }
 
-  submitReason(){
+  submitReason(e){
     this.setState({
-      deleteData:[],
       modalVisible:false
     })
     this.props.deleteItem(false);
-    var res =  document.getElementsByClassName("delete_reason");
-    for (var item in res){
-      if((Number(item)+'') != 'NaN')
-      {
-        res[item].style.color = 'black';
-        res[item].style.borderColor = '#ddd';
+
+    var eles = document.getElementsByClassName("delete_reason");
+    var res; res =  Array.prototype.slice.call(eles);
+    res = res.filter(function(item){
+      if(item.style.color=='#ed4040'||item.style.color=='rgb(237, 64, 64)'){
+        return true
       }
-    }
+      return false;
+    })
+    var reasons = [];
+    res.map(function(item,idx){
+      item.style.color = 'black';
+      item.style.borderColor = '#ddd';
+      reasons = reasons.concat(item.innerText);//向后台提交
+    })
+
+    this.evt.parentNode.parentNode.removeChild(this.evt.parentNode);
+  }
+
+  cancelSelete(){
+    this.props.deleteItem(false);
+    var eles = document.getElementsByClassName("delete_reason");
+    var res =  Array.prototype.slice.call(eles);
+    res = res.filter(function(item){
+      if(item.style.color=='#ed4040'||item.style.color=='rgb(237, 64, 64)'){
+        return true
+      }
+      return false;
+    })
+    res.map(function(item,idx){
+      item.style.color = 'black';
+      item.style.borderColor = '#ddd';
+    })
+    this.setState({
+      modalVisible:false
+    })
   }
 
   render(){
     var t = this;
     var {news}=t.state;
-    var { deleteData } = t.state;
+    var { deleteReason } = t;
+
     var newsList=news.length?
           news.map((newsItem,index)=>(
             <section key={index} className="article_list_section">
-              <Link to={`details`} className="list_link">
+              <Link to={`details/${newsItem.uniquekey}`} className="list_link">
                   <div className="list_article_title">
                     <span>{newsItem.title}</span>
                   </div>
                   <div className="list_article_img">
-                    <img src={newsItem.imgSrc} alt={newsItem.title}/>
+                    <img src={newsItem.thumbnail_pic_s} alt={newsItem.title}/>
                   </div>              
               </Link>
               <div className="list_article_desc clearfix">
-                  <span>{newsItem.author}</span>
-                  <span>{newsItem.comCount}</span>
-                  <span>{newsItem.time}</span>
+                  <span>{newsItem.author_name}</span>
+                  <span>22</span>
+                  <span>{newsItem.date}</span>
               </div>  
               <Icon type="delete" className="close_icon" onClick={t.deleteItem.bind(t,index)}/>
             </section>
@@ -99,15 +115,14 @@ export default class ArticleList extends React.Component{
           <Col span={24}>
             {newsList}
             <div className={classnames({'delete_modal':true,'isvisible':t.state.modalVisible})}>
-              <span>可选理由，精准屏蔽</span>
-              <Button onClick={t.submitReason.bind(t)}>{t.state.deleteOri}</Button>
-              <span className="delete_reason" onClick={t.selectReason.bind(t)}>看过了</span>
-              <span className="delete_reason" onClick={t.selectReason.bind(t)}> 内容太水</span>
+              <p>可选理由，精准屏蔽</p>
               {
-                deleteData.length>0 ? deleteData.map(function(item,idx){
+                deleteReason.length>0 ? deleteReason.map(function(item,idx){
                   return <span className="delete_reason" onClick={t.selectReason.bind(t)}>{item}</span>
                 }) : ''                  
               }
+              <Button onClick={t.submitReason.bind(t)}>确定</Button>
+              <Button className="cancel_button" onClick={t.cancelSelete.bind(t)}>取消</Button>
             </div>
           </Col>
         </Row>

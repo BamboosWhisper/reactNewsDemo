@@ -22,7 +22,7 @@ export default class Root extends React.Component {
 			<div>
 				<Router history={hashHistory}>
 					<Route path="/" component={Index}></Route>
-					<Route path="/details" component={NewsDetails}></Route>
+					<Route path="/details/:uniquekey" component={NewsDetails}></Route>
 					<Route path="/usercenter" component={UserCenter}></Route>
 				</Router>
 			</div>

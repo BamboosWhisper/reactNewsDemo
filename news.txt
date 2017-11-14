@@ -1,0 +1,9 @@
+1、新闻列表
+http://newsapi.gugujiankong.com/Handler.ashx?action=getnews&type=" + this.props.type
+    + "&count=" + this.props.count
+
+type:top shehui guonei yule guoji
+
+2、新闻内容
+http://newsapi.gugujiankong.com/Handler.ashx?action=getnewsitem&uniquekey="
+   + this.props.params.uniquekey

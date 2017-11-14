@@ -44,6 +44,7 @@ class Header extends Component{
 		message.success("请求成功！");
     this.setModalVisible(false);
     sessionStorage.setItem('islogin',this.state.hasLogined)
+    sessionStorage.setItem('userid',formData.userName)
 	};
 
   toLogin(){
@@ -54,7 +55,7 @@ class Header extends Component{
     let t = this;
     let { getFieldDecorator } = t.props.form;
     var isLogin = t.state.hasLogined? t.state.hasLogined : (sessionStorage.getItem('islogin')? sessionStorage.getItem('islogin'):false)
-
+    isLogin = isLogin==='false'?false:true;
     var userShow = isLogin?
                       <Link to="/usercenter">
                         <Icon type="user" />
